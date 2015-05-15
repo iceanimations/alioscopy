@@ -6,10 +6,9 @@ import pymel.core as pc
 import math
 
 
-import utilities
+from . import utilities
 reload(utilities)
-
-from utilities import clamp, fovToFocalLength, lockAndHide
+from .utilities import clamp, fovToFocalLength, lockAndHide
 
 from . import expressions
 reload(expressions)
@@ -17,17 +16,15 @@ reload(expressions)
 __all__ = ['makeCams']
 
 
-# constants
-alioscopy_MIN = 0.05
-alioscopy_MAX = 1.0
+if 'constants':
+    alioscopy_MIN = 0.05
+    alioscopy_MAX = 1.0
 
-origImageZ = 400
-origNearZ = 6
-origFOV = math.radians(13.35)
-validNumberOfCameras = [5, 8, 16]
-origStereoEyeSeparation = 6.5
-
-
+    origImageZ = 400
+    origNearZ = 6
+    origFOV = math.radians(13.35)
+    validNumberOfCameras = [5, 8, 16]
+    origStereoEyeSeparation = 6.5
 
 # attribute lists
 displayAttrs = [
@@ -67,7 +64,7 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
     # effect of scale
     fov = origFOV
     imageZ = origImageZ*cameraScale
-    nearZ = origNearZ*cameraScale
+    nearZ = origNearZ
     stereoEyeSeparation = origStereoEyeSeparation*cameraScale
 
     # effect of alioscopyParameter
@@ -75,23 +72,40 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
     imageZ *= p
     stereoEyeSeparation *= p
 
+    # adding custom attrs to mainCam
     mainCam, mainCamShape = pc.camera()
     mainCam.rename('alioscopyCamRig')
+    mainCam.addAttr('alioscopyParameter', shortName='p',
+            niceName='Alioscopy Parameter', defaultValue=1.0, keyable=True,
+            hasMinValue=True, minValue=alioscopy_MIN, hasMaxValue=True,
+            maxValue=alioscopy_MAX, attributeType='double')
+    pAttr=mainCam.attr('alioscopyParameter')
+    pAttr.set(p)
+    pAttr.set(keyable=True)
+    mainCam.addAttr('cameraScale', shortName='cs',
+            niceName='Camera Scale', defaultValue=1.0, keyable=True,
+            attributeType='double', hasMinValue=True, minValue=0.001,
+            hasSoftMaxValue=True, softMaxValue=2)
+    scaleAttr = mainCam.attr('cameraScale')
+    scaleAttr.set(cameraScale)
+    scaleAttr.set(keyable=True)
+    #scaleAttr >> mainCamShape.cameraScale
+    mainCam.addAttr('showStereoCams', shortName='ssc',
+            niceName='Show Stereo Cams',
+            attributeType='bool', defaultValue=True)
+    showStereoAttr = mainCam.attr('showStereoCams')
+    showStereoAttr.set(keyable=True)
+
+    # focal length expression
+    mainCamShape.fl.set(fovToFocalLength(fov))
+    mainExpr = expressions.makeMainExpression(pAttr, scaleAttr, mainCamShape.fl)
+    pc.expression(s=mainExpr)
 
     lockAndHide(mainCam, False, False, True)
-    # TODO add mainCam.alioscopyParameter
-    # TODO add mainCam.cameraScale parameter and connect
-    # TODO show stereo Cams
-
     for attr in displayAttrs:
         mainCamShape.attr(attr).set(True)
-
     for attr in lockingAttrs:
         mainCamShape.attr(attr).setLocked(True)
-
-    # TODO lock focal length by expression
-    mainCamShape.fl.set(fovToFocalLength(fov))
-    mainCamShape.fl.set(l=True)
 
     for camIndex in range(nCams):
         stereoOffset = stereoEyeSeparation * (camIndex - nCams/2.0 + 0.5)
@@ -99,17 +113,25 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
 
         cam, camShape = pc.camera()
         mainCamShape.fl >> camShape.fl
+        #mainCamShape.cameraScale >> camShape.cameraScale
+        showStereoAttr >> cam.v
         cam.translateX.set(stereoOffset)
-        lockAndHide(cam)
         pc.parent(cam, mainCam, relative=True)
         cam.horizontalFilmOffset.set(shift)
         cam.rename('alioscopyCam%02d' % (camIndex+1))
 
+        stereoExpr = expressions.makeStereoExpression(nCams, pAttr, scaleAttr,
+                camIndex, cam.tx, camShape.horizontalFilmOffset)
+        pc.expression(s=stereoExpr)
+
+        lockAndHide(cam)
         for attr in displayAttrs:
             camShape.attr(attr).set(True)
-
         for attr in lockingAttrs:
             camShape.attr(attr).setLocked(True)
+
+    pc.select(mainCam)
+    return mainCam
 
 if __name__ == '__main__':
     makeCams

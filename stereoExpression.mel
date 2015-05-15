@@ -13,7 +13,7 @@ float $camIndex = $s_camIndex;
 // effect of scale
 float $fov = $origFOV;
 float $imageZ = $origImageZ * $cameraScale;
-float $nearZ = $origNearZ * $cameraScale;
+float $nearZ = $origNearZ;
 float $stereoEyeSeparation = $origStereoEyeSeparation * $cameraScale;
 
 // effect of alioscopyParameter

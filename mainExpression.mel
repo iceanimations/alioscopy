@@ -10,12 +10,9 @@ float $cameraScale = $s_cameraScale;
 
 // effect of scale
 float $fov = $origFOV;
-float $imageZ = $origImageZ * $cameraScale;
-float $nearZ = $origNearZ * $cameraScale;
-float $stereoEyeSeparation = $origStereoEyeSeparation * $cameraScale;
 
 // effect of alioscopyParameter
 $fov = 2*tan(tan($fov/2.0)/$p);
-float $fl = 36.0 / ( 2 * tan($fov/2.0) )
+float $fl = 36.0 / ( 2 * tan($fov/2.0) );
 $s_mainCamShapeFocalLength = $fl;
 
