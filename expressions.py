@@ -19,7 +19,7 @@ def makeMainExpression(p, cameraScale, focalLength, loctz, locsx, locsy):
             's_cameraScale': str(cameraScale),
             's_mainCamShapeFocalLength': str(focalLength),
             's_loc2TranslateZ': str(loctz),
-            's_loc2ScaleZ': str(locsx),
+            's_loc2ScaleX': str(locsx),
             's_loc2ScaleY': str(locsy),
             }
     return mainExpressionTemplate.safe_substitute(variables)
