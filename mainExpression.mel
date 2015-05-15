@@ -3,6 +3,7 @@ float $origImageZ = 400;
 float $origNearZ = 6;
 float $origFOV = deg_to_rad(13.35);
 float $origStereoEyeSeparation = 6.5;
+float $filmAspectRatio = 1.5;
 
 // input
 float $p = $s_p;
@@ -10,9 +11,23 @@ float $cameraScale = $s_cameraScale;
 
 // effect of scale
 float $fov = $origFOV;
+float $imageZ = $origImageZ * $cameraScale;
+float $nearZ = $origNearZ;
+float $stereoEyeSeparation = $origStereoEyeSeparation * $cameraScale;
 
 // effect of alioscopyParameter
+$imageZ *= $p;
+$stereoEyeSeparation *= $p;
 $fov = 2*tan(tan($fov/2.0)/$p);
+
+// calculation
 float $fl = 36.0 / ( 2 * tan($fov/2.0) );
+float $imageSizeWidth = tan($fov/2.0) * $imageZ;
+float $imageSizeHeight = $imageSizeWidth / $filmAspectRatio;
+
+// output
 $s_mainCamShapeFocalLength = $fl;
+$s_loc2TranslateZ = -$imageZ;
+$s_loc2ScaleX = $imageSizeWidth;
+$s_loc2ScaleY = $imageSizeHeight;
 

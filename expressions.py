@@ -1,5 +1,9 @@
 import os
 from string import Template
+
+
+__all__ = ['makeMainExpression', 'makeStereoExpression']
+
 curdir = os.path.dirname(__file__)
 
 # reading mainExpression from file
@@ -9,11 +13,14 @@ with open(mainExpressionFileName) as mainExpressionFile:
     mainExpressionString = mainExpressionFile.read()
 mainExpressionTemplate = Template(mainExpressionString)
 
-def makeMainExpression(p, cameraScale, focalLength):
+def makeMainExpression(p, cameraScale, focalLength, loctz, locsx, locsy):
     variables = {
             's_p': str(p),
             's_cameraScale': str(cameraScale),
             's_mainCamShapeFocalLength': str(focalLength),
+            's_loc2TranslateZ': str(loctz),
+            's_loc2ScaleZ': str(locsx),
+            's_loc2ScaleY': str(locsy),
             }
     return mainExpressionTemplate.safe_substitute(variables)
 

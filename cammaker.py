@@ -53,6 +53,7 @@ lockingAttrs = [
     'ptsc',
     'horizontalFilmOffset',
     'verticalFilmOffset',
+    'cameraScale',
 ]
 
 # main function
@@ -89,18 +90,40 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
     scaleAttr = mainCam.attr('cameraScale')
     scaleAttr.set(cameraScale)
     scaleAttr.set(keyable=True)
-    #scaleAttr >> mainCamShape.cameraScale
     mainCam.addAttr('showStereoCams', shortName='ssc',
             niceName='Show Stereo Cams',
             attributeType='bool', defaultValue=True)
     showStereoAttr = mainCam.attr('showStereoCams')
     showStereoAttr.set(keyable=True)
+    mainCam.addAttr('showAnnotations', shortName='sha', 
+            niceName='Show Annotations', attributeType='bool',
+            defaultValue=True)
+    annotationsAttr = mainCam.attr('showAnnotations')
+    annotationsAttr.set(keyable=True)
+
+    # make annotations
+    grp = pc.createNode('transform', n='annotationsGrp', p=mainCam)
+    loc1 = pc.spaceLocator()
+    loc2 = pc.spaceLocator()
+    dimShape = pc.createNode('distanceDimShape')
+    dim = dimShape.firstParent()
+    loc1.worldPosition[0] >> dim.startPoint
+    loc2.worldPosition[0] >> dim.endPoint
+    loc1.v.set(False)
+    pc.parent(loc1, loc2, dim, grp)
+    annotationsAttr >> grp.v
 
     # focal length expression
     mainCamShape.fl.set(fovToFocalLength(fov))
-    mainExpr = expressions.makeMainExpression(pAttr, scaleAttr, mainCamShape.fl)
+    mainExpr = expressions.makeMainExpression(pAttr, scaleAttr,
+            mainCamShape.fl, loc2.tz, loc2.getShape().localScaleX,
+            loc2.getShape().localScaleY)
     pc.expression(s=mainExpr)
 
+    lockAndHide(loc1)
+    lockAndHide(loc2)
+    lockAndHide(dim)
+    lockAndHide(grp)
     lockAndHide(mainCam, False, False, True)
     for attr in displayAttrs:
         mainCamShape.attr(attr).set(True)
@@ -113,7 +136,6 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
 
         cam, camShape = pc.camera()
         mainCamShape.fl >> camShape.fl
-        #mainCamShape.cameraScale >> camShape.cameraScale
         showStereoAttr >> cam.v
         cam.translateX.set(stereoOffset)
         pc.parent(cam, mainCam, relative=True)
