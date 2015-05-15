@@ -5,11 +5,19 @@ Makes a maya cam rig using the rules from alioscopy (C)
 import pymel.core as pc
 import math
 
+
+import utilities
+reload(utilities)
+
+from utilities import clamp, fovToFocalLength, lockAndHide
+
 from . import expressions
 reload(expressions)
 
 __all__ = ['makeCams']
 
+
+# constants
 alioscopy_MIN = 0.05
 alioscopy_MAX = 1.0
 
@@ -19,28 +27,6 @@ origFOV = math.radians(13.35)
 validNumberOfCameras = [5, 8, 16]
 origStereoEyeSeparation = 6.5
 
-
-
-
-# utility functions
-def clamp(min, max, value):
-    return sorted((min, value, max))[1]
-
-def fovToFocalLength(fov, filmBackWidth=36.0):
-    ''' filmBackWidth is in mm '''
-    return filmBackWidth / ( 2 * math.tan(fov/2.0) )
-
-def focalLengthToFov(focalLength, filmBackWidth=36.0):
-    ''' filmBackWidth is in mm '''
-    return 2 * math.atan( filmBackWidth / (2.0 * focalLength) )
-
-def lockAndHide(node, tr=True, ro=True, scale=True):
-    node.scaleX.set(l=True)
-    node.scaleY.set(l=True)
-    node.scaleZ.set(l=True)
-    node.scaleX.setKeyable(False)
-    node.scaleY.setKeyable(False)
-    node.scaleZ.setKeyable(False)
 
 
 # attribute lists
@@ -125,8 +111,5 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
         for attr in lockingAttrs:
             camShape.attr(attr).setLocked(True)
 
-def testFocalLengthToFov():
-    assert focalLengthToFov(35) == 0.9500215125301936
-
-def testFovToFocalLength():
-    assert fovToFocalLength(0.9500215125301936) == 35
+if __name__ == '__main__':
+    makeCams

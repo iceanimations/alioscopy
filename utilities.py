@@ -1,0 +1,31 @@
+import math
+
+# utility functions
+def clamp(min, max, value):
+    return sorted((min, value, max))[1]
+
+def fovToFocalLength(fov, filmBackWidth=36.0):
+    ''' filmBackWidth is in mm '''
+    return filmBackWidth / ( 2 * math.tan(fov/2.0) )
+
+def focalLengthToFov(focalLength, filmBackWidth=36.0):
+    ''' filmBackWidth is in mm '''
+    return 2 * math.atan( filmBackWidth / (2.0 * focalLength) )
+
+def lockAndHide(node, tr=True, ro=True, scale=True):
+    node.scaleX.set(l=True)
+    node.scaleY.set(l=True)
+    node.scaleZ.set(l=True)
+    node.scaleX.setKeyable(False)
+    node.scaleY.setKeyable(False)
+    node.scaleZ.setKeyable(False)
+
+def testFocalLengthToFov():
+    assert focalLengthToFov(35) == 0.9500215125301936
+
+def testFovToFocalLength():
+    assert fovToFocalLength(0.9500215125301936) == 35
+
+if __name__ == '__main__':
+    testFocalLengthToFov()
+    testFovToFocalLength()
