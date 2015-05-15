@@ -1,0 +1,30 @@
+// constants
+float $origImageZ = 400;
+float $origNearZ = 6;
+float $origFOV = deg_to_rad(13.35);
+float $origStereoEyeSeparation = 6.5;
+
+// input
+float $nCams = $s_nCams;
+float $p = $s_p;
+float $cameraScale = $s_cameraScale;
+float $camIndex = $s_camIndex;
+
+// effect of scale
+float $fov = $origFOV;
+float $imageZ = $origImageZ * $cameraScale;
+float $nearZ = $origNearZ * $cameraScale;
+float $stereoEyeSeparation = $origStereoEyeSeparation * $cameraScale;
+
+// effect of alioscopyParameter
+$imageZ *= $p;
+$stereoEyeSeparation *= $p;
+
+// calculate Stuff
+float $stereoOffset = $stereoEyeSeparation * ($camIndex - $nCams/2.0 + 0.5);
+float $shift = -$stereoOffset * $nearZ / $imageZ;
+
+// output
+$s_camTranslateX = $stereoOffset;
+$s_camShapeHorizontalFilmOffset = $shift;
+

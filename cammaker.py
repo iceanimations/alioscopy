@@ -5,31 +5,34 @@ Makes a maya cam rig using the rules from alioscopy (C)
 import pymel.core as pc
 import math
 
+from . import expressions
+reload(expressions)
 
 __all__ = ['makeCams']
-
 
 alioscopy_MIN = 0.05
 alioscopy_MAX = 1.0
 
 origImageZ = 400
 origNearZ = 6
-origFOV = 13.35
+origFOV = math.radians(13.35)
 validNumberOfCameras = [5, 8, 16]
 origStereoEyeSeparation = 6.5
 
 
+
+
+# utility functions
 def clamp(min, max, value):
     return sorted((min, value, max))[1]
 
 def fovToFocalLength(fov, filmBackWidth=36.0):
     ''' filmBackWidth is in mm '''
-    return filmBackWidth / (2 * math.tan(fov/2.0))
+    return filmBackWidth / ( 2 * math.tan(fov/2.0) )
 
 def focalLengthToFov(focalLength, filmBackWidth=36.0):
     ''' filmBackWidth is in mm '''
     return 2 * math.atan( filmBackWidth / (2.0 * focalLength) )
-
 
 def lockAndHide(node, tr=True, ro=True, scale=True):
     node.scaleX.set(l=True)
@@ -39,6 +42,8 @@ def lockAndHide(node, tr=True, ro=True, scale=True):
     node.scaleY.setKeyable(False)
     node.scaleZ.setKeyable(False)
 
+
+# attribute lists
 displayAttrs = [
     'displayFilmGate',
     'displayResolution',
@@ -63,8 +68,11 @@ lockingAttrs = [
     'verticalRollPivot',
     'frv',
     'ptsc',
+    'horizontalFilmOffset',
+    'verticalFilmOffset',
 ]
 
+# main function
 def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
     ''' Creates a set of cameras using the alioscopy_parameter'''
     p = clamp(alioscopy_MIN, alioscopy_MAX, alioscopyParameter)
@@ -76,10 +84,8 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
     nearZ = origNearZ*cameraScale
     stereoEyeSeparation = origStereoEyeSeparation*cameraScale
 
-    # effect of sterepSeparation
-    print fov
-    fov = 2 * math.atan( math.tan( math.radians(fov)/2.0 ) / p )
-    print fov
+    # effect of alioscopyParameter
+    fov = 2 * math.atan( math.tan( fov/2.0 ) / p )
     imageZ *= p
     stereoEyeSeparation *= p
 
@@ -89,7 +95,7 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
     lockAndHide(mainCam, False, False, True)
     # TODO add mainCam.alioscopyParameter
     # TODO add mainCam.cameraScale parameter and connect
-    # TODO show stereo Cam
+    # TODO show stereo Cams
 
     for attr in displayAttrs:
         mainCamShape.attr(attr).set(True)
@@ -103,7 +109,6 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
 
     for camIndex in range(nCams):
         stereoOffset = stereoEyeSeparation * (camIndex - nCams/2.0 + 0.5)
-        print nearZ, imageZ
         shift = -stereoOffset * nearZ / imageZ
 
         cam, camShape = pc.camera()
@@ -112,7 +117,7 @@ def makeCams(nCams=8, alioscopyParameter=1.0, cameraScale=1.0):
         lockAndHide(cam)
         pc.parent(cam, mainCam, relative=True)
         cam.horizontalFilmOffset.set(shift)
-        cam.rename('alioscopyCam%02d' % camIndex)
+        cam.rename('alioscopyCam%02d' % (camIndex+1))
 
         for attr in displayAttrs:
             camShape.attr(attr).set(True)
