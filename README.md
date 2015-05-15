@@ -1,4 +1,4 @@
-# README #
+# What is it #
 
 This script enables creation of a stereoscopic camera rig constrained according to the rules outlined by [alioscopy](http://www.alioscopy.com)
 
